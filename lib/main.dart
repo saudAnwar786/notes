@@ -41,6 +41,13 @@ class Homepage extends StatelessWidget {
               // }else{
               //   return const VerifyEmailView();
               // }
+              if(user != null){
+                if(user.emailVerified){
+                  print('Email verified');
+                }else{
+                  return const VerifyEmailView();
+                }
+              }
 
               return const LoginView();
             default:

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:notes/constants/routes.dart';
 import 'package:notes/firebase_options.dart';
 import 'package:notes/views/register_view.dart';
 
@@ -59,13 +60,19 @@ class _LoginViewState extends State<LoginView> {
                 //   email: email,
                 //   password: password);
                 try{
-                  final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+                   await FirebaseAuth.instance.signInWithEmailAndPassword(
                     email: email
                   , password: password);
-                    print(userCredential);
-                  
+                    // print(userCredential);
+                  if(!context.mounted) return;
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    notesRoute,
+                   (route) => false,
+                   );
                 } on FirebaseAuthException catch(e){
-                     print(e.code);
+                    if(e.code == 'weak-password'){
+                      print('weak password');
+                    }
                 }catch (e){
                   print(e.runtimeType);
                   print(e);
@@ -74,7 +81,7 @@ class _LoginViewState extends State<LoginView> {
               child: const Text('Login'),),
               TextButton(onPressed: (){
                 Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/register',
+                  registerRoute,
                    (route) => false);
               },
                child: const Text('Not registered yet? Register here!'))

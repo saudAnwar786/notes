@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:notes/constants/routes.dart';
 import 'package:notes/firebase_options.dart';
+import 'package:notes/utilities/show_error_dialog.dart';
 import 'package:notes/views/register_view.dart';
 
 class LoginView extends StatefulWidget {
@@ -60,22 +61,46 @@ class _LoginViewState extends State<LoginView> {
                 //   email: email,
                 //   password: password);
                 try{
-                   await FirebaseAuth.instance.signInWithEmailAndPassword(
+                    await FirebaseAuth.instance.signInWithEmailAndPassword(
                     email: email
                   , password: password);
                     // print(userCredential);
                   if(!context.mounted) return;
-                  Navigator.of(context).pushNamedAndRemoveUntil(
+                  final user = FirebaseAuth.instance.currentUser;
+                  if(user?.emailVerified ??false){
+                    Navigator.of(context).pushNamedAndRemoveUntil(
                     notesRoute,
-                   (route) => false,
-                   );
+                    (route) => false,
+                    );
+                  }else{
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                    verifyEmailRoute,
+                    (route) => false,
+                    );
+                  }
+                  
                 } on FirebaseAuthException catch(e){
-                    if(e.code == 'weak-password'){
-                      print('weak password');
-                    }
+                  if(e.code == 'user-not-found'){
+                    if(!context.mounted) return;
+                    await showErrorDialog(context,
+                     "User not found");
+                  }else if(e.code == 'wrong-password'){
+                    if(!context.mounted) return;
+                    await showErrorDialog(context,
+                     "You entered wrong password");
+                  }else if(e.code == 'invalid-email'){
+                    if(!context.mounted) return;
+                    await showErrorDialog(context,
+                     "Invalid Email");
+                  }else{
+                    if(!context.mounted) return;
+                    await showErrorDialog(context,
+                    'Error: ${e.code}');
+                  }
                 }catch (e){
-                  print(e.runtimeType);
-                  print(e);
+                  if(!context.mounted) return;
+                    await showErrorDialog(context,
+                    'Error: ${e.toString()}');
                 }
               },
               child: const Text('Login'),),
@@ -89,5 +114,4 @@ class _LoginViewState extends State<LoginView> {
           ),
     );
   }
-  
 }
